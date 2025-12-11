@@ -10,9 +10,14 @@ export interface SiteSettings {
   heroSubtitle: string;
   heroBadgeText: string;
   
+  // Pricing
+  originalPrice: string;
+  discountedPrice: string;
+  showDiscount: boolean;
+  discountLabel: string;
+  
   // Payment Section
   qrCodeUrl: string;
-  paymentAmount: string;
   paymentNote: string;
   upiId: string;
   
@@ -24,6 +29,9 @@ export interface SiteSettings {
   // Social Links
   youtubeLink: string;
   instagramLink: string;
+  
+  // Admin Auth
+  adminPassword: string;
 }
 
 const defaultSettings: SiteSettings = {
@@ -32,8 +40,11 @@ const defaultSettings: SiteSettings = {
   heroTitle: "Royal Gold Algo",
   heroSubtitle: "Advanced algorithmic trading for XAUUSD with precision-engineered strategies",
   heroBadgeText: "Premium Trading System",
+  originalPrice: "₹9,999",
+  discountedPrice: "₹4,999",
+  showDiscount: true,
+  discountLabel: "50% OFF",
   qrCodeUrl: "",
-  paymentAmount: "₹4,999",
   paymentNote: "Scan QR code or use UPI ID below",
   upiId: "example@upi",
   telegramLink: "https://t.me/royalgoldalgo",
@@ -41,17 +52,22 @@ const defaultSettings: SiteSettings = {
   email: "support@royalgoldalgo.com",
   youtubeLink: "",
   instagramLink: "",
+  adminPassword: "admin123", // Default password - user should change this
 };
 
 interface SiteSettingsContextType {
   settings: SiteSettings;
   updateSettings: (newSettings: Partial<SiteSettings>) => void;
   resetSettings: () => void;
+  isAdminAuthenticated: boolean;
+  loginAdmin: (password: string) => boolean;
+  logoutAdmin: () => void;
 }
 
 const SiteSettingsContext = createContext<SiteSettingsContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'site-settings';
+const AUTH_KEY = 'admin-auth';
 
 export const SiteSettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [settings, setSettings] = useState<SiteSettings>(() => {
@@ -68,6 +84,13 @@ export const SiteSettingsProvider: React.FC<{ children: ReactNode }> = ({ childr
     return defaultSettings;
   });
 
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(AUTH_KEY) === 'true';
+    }
+    return false;
+  });
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   }, [settings]);
@@ -81,8 +104,29 @@ export const SiteSettingsProvider: React.FC<{ children: ReactNode }> = ({ childr
     localStorage.removeItem(STORAGE_KEY);
   };
 
+  const loginAdmin = (password: string): boolean => {
+    if (password === settings.adminPassword) {
+      setIsAdminAuthenticated(true);
+      localStorage.setItem(AUTH_KEY, 'true');
+      return true;
+    }
+    return false;
+  };
+
+  const logoutAdmin = () => {
+    setIsAdminAuthenticated(false);
+    localStorage.removeItem(AUTH_KEY);
+  };
+
   return (
-    <SiteSettingsContext.Provider value={{ settings, updateSettings, resetSettings }}>
+    <SiteSettingsContext.Provider value={{ 
+      settings, 
+      updateSettings, 
+      resetSettings,
+      isAdminAuthenticated,
+      loginAdmin,
+      logoutAdmin
+    }}>
       {children}
     </SiteSettingsContext.Provider>
   );
