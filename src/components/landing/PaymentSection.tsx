@@ -68,10 +68,26 @@ const PaymentSection = () => {
 
             {/* Pricing Details */}
             <div className="bg-card rounded-2xl border border-primary/30 p-8 flex flex-col">
+              {/* Discount Badge */}
+              {settings.showDiscount && (
+                <div className="mb-4">
+                  <span className="inline-block px-3 py-1 text-sm font-bold bg-destructive text-destructive-foreground rounded-full animate-pulse">
+                    {settings.discountLabel}
+                  </span>
+                </div>
+              )}
+
               <div className="mb-6">
                 <div className="text-sm text-muted-foreground mb-2">One-time payment</div>
-                <div className="text-4xl font-display font-bold text-gold-gradient">
-                  {settings.paymentAmount}
+                <div className="flex items-baseline gap-3">
+                  {settings.showDiscount && (
+                    <span className="text-xl text-muted-foreground line-through">
+                      {settings.originalPrice}
+                    </span>
+                  )}
+                  <span className="text-4xl font-display font-bold text-gold-gradient">
+                    {settings.discountedPrice}
+                  </span>
                 </div>
               </div>
 
